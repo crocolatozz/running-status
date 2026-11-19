@@ -7,9 +7,14 @@ export interface EquipmentRecord {
   hasPendingWrites?: boolean;
 }
 
+export interface FirestoreSyncMetadata {
+  fromCache: boolean;
+  hasPendingWrites: boolean;
+}
+
 export type SyncMode = 'local' | 'firestore';
 
-export type ToastVariant = 'success' | 'info' | 'warning';
+export type ToastVariant = 'running' | 'standby' | 'ignore' | 'info' | 'error';
 
 export interface ToastItem {
   id: string;

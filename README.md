@@ -1,12 +1,12 @@
-# Running Status Checker (`v1.0.3`)
+# Running Status Checker (`v1.1.0`)
 
 Real-time Progressive Web App (PWA) for monitoring and updating the running status (`RUNNING`, `STANDBY`, `IGNORE`) of all 56 Urea 1B plant equipment units.
 
 ## Key Capabilities
-- **Real-Time Cloud Firestore Sync**: Uses `onSnapshot` over the `equipments` collection with multi-tab IndexedDB persistence (`persistentLocalCache` + `persistentMultipleTabManager`).
-- **Offline Dead-Zone Resilience**: Queues status updates optimistically while offline, displays a `Pending sync` indicator on unsynced rows, estimates local timestamps, and switches the header status badge dynamically between `Live Sync` and `Offline Mode`.
-- **Mobile Field Ergonomics**: Strict dark industrial UI (`#0f172a` / `#1e293b` / `#10b981`), anti-zoom viewport and `16px` search input, `touch-action: manipulation` / `pan-y`, `400ms` per-tag double-tap cooldown, and forbearing tag search (ignores hyphens and spaces).
-- **Installable PWA**: Configured with `vite-plugin-pwa`, Workbox `autoUpdate` (`skipWaiting: true`, `clientsClaim: true`), relative `./` paths for GitHub Pages subpath hosting, and iOS/Android safe-area insets.
+- **Real-Time Cloud Firestore Sync**: Uses `onSnapshot(..., { includeMetadataChanges: true })` over the `equipments` collection with multi-tab IndexedDB persistence (`persistentLocalCache` + `persistentMultipleTabManager`).
+- **Live Sync Telemetry**: Dynamically reflects `Live Sync` (emerald), `Syncing...` (amber), and `Offline Mode` (orange) from Firestore snapshot metadata (`fromCache`, `hasPendingWrites`) and browser connectivity, with zero-shift amber clock indicators on pending rows.
+- **Mobile Field Ergonomics**: Strict dark industrial UI (`#0f172a` / `#1e293b` / `#10b981`), iOS notch safe-area header clearance, anti-zoom viewport and `16px` search input, smooth sliding 3-state status selector, `400ms` per-tag double-tap cooldown, and hyphen/space-insensitive tag search.
+- **Installable PWA**: Unified pulse SVG and solid `#0f172a` PNG icons (`180x180`, `192x192`, `512x512`), Workbox `autoUpdate` with `skipWaiting`/`clientsClaim` and in-app update notifications, relative `./` paths for GitHub Pages subpath hosting, and centered iOS installation instructions.
 
 ## Development & Build
 ```bash
@@ -16,4 +16,4 @@ npm run build
 ```
 
 ---
-©2026 — Developed by FIKRI · v1.0.3
+©2026 — Developed by FIKRI • v1.1.0

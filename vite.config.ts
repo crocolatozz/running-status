@@ -14,11 +14,11 @@ export default defineConfig(() => {
       VitePWA({
         registerType: 'autoUpdate',
         manifestFilename: 'manifest.json',
-        includeAssets: ['icon.svg', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png', 'pwa-maskable-512x512.png'],
+        includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png', 'pwa-maskable-512x512.png'],
         manifest: {
           id: './',
           name: 'Running Status Checker',
-          short_name: 'StatusCheck',
+          short_name: 'Running Status',
           description: 'Real-time monitoring and status control for Urea 1B plant equipment.',
           theme_color: '#0f172a',
           background_color: '#0f172a',

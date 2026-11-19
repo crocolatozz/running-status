@@ -13,7 +13,12 @@ import {
   type Firestore,
 } from 'firebase/firestore';
 import {UREA_1B_EQUIPMENT_TAGS} from '../data/urea1bEquipments';
-import type {EquipmentRecord, EquipmentStatus, SyncMode} from '../types/equipment';
+import type {
+  EquipmentRecord,
+  EquipmentStatus,
+  FirestoreSyncMetadata,
+  SyncMode,
+} from '../types/equipment';
 
 export const firebaseConfig = {
   apiKey: 'AIzaSyBZ-2hv8OpbcKzBvcbtrtDI5mNEf0bbI2A',
@@ -27,7 +32,10 @@ export const firebaseConfig = {
 const EQUIPMENTS_COLLECTION = 'equipments';
 const LOCAL_STORAGE_KEY = 'rsc_urea1b_equipments_v1';
 
-type EquipmentSubscriber = (records: EquipmentRecord[]) => void;
+type EquipmentSubscriber = (
+  records: EquipmentRecord[],
+  metadata: FirestoreSyncMetadata,
+) => void;
 
 const localSubscribers = new Set<EquipmentSubscriber>();
 let cachedFirestore: Firestore | null = null;
@@ -167,7 +175,7 @@ function writeLocalRecords(records: EquipmentRecord[]): void {
     // Ignore storage quota errors cleanly
   }
   for (const listener of localSubscribers) {
-    listener(sorted);
+    listener(sorted, {fromCache: false, hasPendingWrites: false});
   }
 }
 
@@ -178,7 +186,7 @@ function attachLocalStorageSync(): void {
     if (event.key === LOCAL_STORAGE_KEY) {
       const records = readLocalRecords();
       for (const listener of localSubscribers) {
-        listener(records);
+        listener(records, {fromCache: false, hasPendingWrites: false});
       }
     }
   });
@@ -234,7 +242,7 @@ export function subscribeEquipments(
   if (!isFirebaseConfigured()) {
     attachLocalStorageSync();
     localSubscribers.add(onData);
-    onData(readLocalRecords());
+    onData(readLocalRecords(), {fromCache: false, hasPendingWrites: false});
 
     return () => {
       localSubscribers.delete(onData);
@@ -248,9 +256,10 @@ export function subscribeEquipments(
     const db = getFirestoreInstance();
     const colRef = collection(db, EQUIPMENTS_COLLECTION);
 
-    // Attach onSnapshot immediately so IndexedDB cached data renders instantaneously offline
+    // Attach onSnapshot with includeMetadataChanges for live cache/pending telemetry
     unsubscribeSnapshot = onSnapshot(
       colRef,
+      {includeMetadataChanges: true},
       (snapshot) => {
         if (!active) return;
         const map = new Map<string, EquipmentRecord>();
@@ -274,7 +283,10 @@ export function subscribeEquipments(
           }
         }
 
-        onData(sortAlphabetically(Array.from(map.values())));
+        onData(sortAlphabetically(Array.from(map.values())), {
+          fromCache: snapshot.metadata.fromCache,
+          hasPendingWrites: snapshot.metadata.hasPendingWrites,
+        });
       },
       (err) => {
         onError?.(formatFirebaseError(err));

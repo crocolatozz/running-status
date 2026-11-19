@@ -1,4 +1,4 @@
-export const APP_VERSION = '1.0.3';
+export const APP_VERSION = '1.1.0';
 
 export const UREA_1B_EQUIPMENT_TAGS: readonly string[] = [
   'B-02-U-FD304',

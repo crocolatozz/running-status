@@ -1,12 +1,19 @@
 import {SearchX} from 'lucide-react';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {EquipmentRow} from './components/EquipmentRow';
+import {IOSInstallModal} from './components/IOSInstallModal';
 import {StickyHeader, type StatusFilter} from './components/StickyHeader';
 import {ToastContainer} from './components/ToastContainer';
 import {APP_VERSION} from './data/urea1bEquipments';
 import {useOnlineStatus} from './hooks/useOnlineStatus';
 import {getSyncMode, subscribeEquipments, updateEquipmentStatus} from './services/firebase';
-import type {EquipmentRecord, EquipmentStatus, ToastItem, ToastVariant} from './types/equipment';
+import type {
+  EquipmentRecord,
+  EquipmentStatus,
+  FirestoreSyncMetadata,
+  ToastItem,
+  ToastVariant,
+} from './types/equipment';
 import {formatTime24} from './utils/time';
 
 const TAP_COOLDOWN_MS = 400;
@@ -21,6 +28,11 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [isIOSGuideOpen, setIsIOSGuideOpen] = useState(false);
+  const [syncMetadata, setSyncMetadata] = useState<FirestoreSyncMetadata>({
+    fromCache: false,
+    hasPendingWrites: false,
+  });
   const [now, setNow] = useState(() => Date.now());
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
@@ -64,17 +76,41 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = subscribeEquipments(
-      (records) => {
+      (records, metadata) => {
         setEquipments(records);
+        setSyncMetadata(metadata);
         setIsLoading(false);
       },
       (err) => {
         setIsLoading(false);
-        pushToast('warning', `Firestore error (${err.code})`, err.message);
+        pushToast('error', `Firestore error (${err.code})`, err.message);
       },
     );
 
     return () => unsubscribe();
+  }, [pushToast]);
+
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
+      return;
+    }
+
+    const hadControllerOnLoad = Boolean(navigator.serviceWorker.controller);
+    if (!hadControllerOnLoad) {
+      return;
+    }
+
+    let notified = false;
+    const handleControllerChange = () => {
+      if (notified) return;
+      notified = true;
+      pushToast('info', `Updated to v${APP_VERSION}`, 'Latest application version is now active.');
+    };
+
+    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+    return () => {
+      navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+    };
   }, [pushToast]);
 
   useEffect(() => {
@@ -98,18 +134,6 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
-
-  const counts = useMemo(() => {
-    let running = 0;
-    let standby = 0;
-    let ignore = 0;
-    for (const item of equipments) {
-      if (item.status === 'RUNNING') running += 1;
-      else if (item.status === 'STANDBY') standby += 1;
-      else ignore += 1;
-    }
-    return {RUNNING: running, STANDBY: standby, IGNORE: ignore};
-  }, [equipments]);
 
   const filteredEquipments = useMemo(() => {
     const normalizedQuery = normalizeTagForSearch(searchQuery);
@@ -145,14 +169,14 @@ export default function App() {
                 ...item,
                 status: nextStatus,
                 updatedAt: tapTimestamp,
-                hasPendingWrites: !isOnline,
+                hasPendingWrites: syncMode === 'firestore',
               }
             : item,
         ),
       );
 
       const variant: ToastVariant =
-        nextStatus === 'RUNNING' ? 'success' : nextStatus === 'STANDBY' ? 'info' : 'warning';
+        nextStatus === 'RUNNING' ? 'running' : nextStatus === 'STANDBY' ? 'standby' : 'ignore';
 
       pushToast(
         variant,
@@ -163,10 +187,10 @@ export default function App() {
       );
 
       updateEquipmentStatus(tag, nextStatus, (err) => {
-        pushToast('warning', `Sync error on ${tag} (${err.code})`, err.message);
+        pushToast('error', `Sync error on ${tag} (${err.code})`, err.message);
       });
     },
-    [isOnline, pushToast],
+    [isOnline, pushToast, syncMode],
   );
 
   const hasActiveFilter = searchQuery.trim().length > 0 || statusFilter !== 'ALL';
@@ -179,26 +203,25 @@ export default function App() {
         searchInputRef={searchInputRef}
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
-        counts={counts}
         syncMode={syncMode}
         isOnline={isOnline}
+        syncMetadata={syncMetadata}
         onPWAInstalled={() =>
-          pushToast('success', 'App installed', 'Running Status Checker added to device.')
+          pushToast('info', 'App installed', 'Running Status Checker added to your device.')
         }
+        onOpenIOSGuide={() => setIsIOSGuideOpen(true)}
       />
 
       <main className="scroll-container-y mx-auto w-full max-w-5xl flex-1 px-3 pt-4 pb-8 sm:px-6 sm:pt-6">
-        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2 sm:mb-4">
-          <div className="flex items-baseline gap-2.5">
-            <h2 className="font-display text-lg font-bold tracking-wide text-slate-100 sm:text-xl">
-              Urea 1B Equipment List
-            </h2>
-            <span className="text-xs text-slate-400 tabular-nums">
-              {hasActiveFilter
-                ? `${filteredEquipments.length} of ${equipments.length} units`
-                : `${equipments.length} units · A–Z`}
-            </span>
-          </div>
+        <div className="mb-3 flex items-center justify-between gap-2 sm:mb-4">
+          <h2 className="font-display text-lg font-bold tracking-wide text-slate-100 sm:text-xl">
+            Urea 1B Equipment List
+          </h2>
+          <span className="text-xs font-medium text-slate-400 tabular-nums whitespace-nowrap">
+            {hasActiveFilter
+              ? `${filteredEquipments.length} of ${equipments.length} units`
+              : `${equipments.length} units`}
+          </span>
         </div>
 
         {isLoading ? (
@@ -206,13 +229,13 @@ export default function App() {
             {Array.from({length: 8}).map((_, idx) => (
               <li
                 key={idx}
-                className="flex flex-col gap-2.5 rounded-xl border border-[#334155] bg-[#1e293b] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-2.5 rounded-xl border border-[#334155] bg-[#1e293b] px-4 py-3 md:flex-row md:items-center md:justify-between"
               >
-                <div className="space-y-1.5">
-                  <div className="h-4 w-32 rounded bg-slate-700/60" />
-                  <div className="h-3 w-24 rounded bg-slate-700/40" />
+                <div className="flex flex-1 items-center justify-between gap-2">
+                  <div className="h-5 w-32 rounded bg-slate-700/60" />
+                  <div className="h-3.5 w-24 rounded bg-slate-700/40" />
                 </div>
-                <div className="h-10 w-full rounded-lg bg-[#0f172a] sm:w-[310px]" />
+                <div className="h-11 w-full rounded-lg bg-[#0f172a] md:w-[320px]" />
               </li>
             ))}
           </ul>
@@ -222,10 +245,10 @@ export default function App() {
               <SearchX className="h-5 w-5" aria-hidden="true" />
             </div>
             <h3 className="mt-3 font-display text-lg font-bold tracking-wide text-slate-100">
-              No matching equipment found
+              No matching equipment
             </h3>
             <p className="mt-1 max-w-sm text-xs text-slate-400 sm:text-sm">
-              No Urea 1B tags match your current search or status filter.
+              No Urea 1B equipment tags match your current search or status filter.
             </p>
             <button
               type="button"
@@ -233,9 +256,9 @@ export default function App() {
                 setSearchQuery('');
                 setStatusFilter('ALL');
               }}
-              className="mt-4 inline-flex min-h-[40px] items-center justify-center rounded-lg bg-emerald-500 px-4 py-2 text-xs font-semibold text-slate-950 transition-colors hover:bg-emerald-400"
+              className="mt-4 inline-flex min-h-[40px] items-center justify-center rounded-lg bg-emerald-500 px-4 py-2 text-xs font-semibold text-slate-950 transition-colors hover:bg-emerald-400 active:scale-95"
             >
-              Clear Filters
+              Reset Filters
             </button>
           </div>
         ) : (
@@ -253,13 +276,16 @@ export default function App() {
       </main>
 
       <footer className="border-t border-[#334155]/70 bg-[#0f172a] px-4 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-          <span>©2026 — Developed by FIKRI</span>
-          <span className="font-mono tabular-nums">v{APP_VERSION}</span>
+        <div className="mx-auto flex max-w-5xl items-center justify-center text-center text-xs text-slate-500 sm:justify-between">
+          <span>
+            ©2026 — Developed by FIKRI •{' '}
+            <span className="font-mono tabular-nums">v{APP_VERSION}</span>
+          </span>
         </div>
       </footer>
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      <IOSInstallModal isOpen={isIOSGuideOpen} onClose={() => setIsIOSGuideOpen(false)} />
     </div>
   );
 }

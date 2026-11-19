@@ -11,10 +11,15 @@ export function usePWAInstall() {
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    const isStandalone =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as unknown as {standalone?: boolean}).standalone === true;
-    setIsInstalled(isStandalone);
+    const mediaQuery = window.matchMedia('(display-mode: standalone)');
+    const checkStandalone = () => {
+      const standalone =
+        mediaQuery.matches ||
+        (window.navigator as unknown as {standalone?: boolean}).standalone === true;
+      setIsInstalled(standalone);
+    };
+
+    checkStandalone();
 
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
@@ -30,10 +35,12 @@ export function usePWAInstall() {
       setDeferredPrompt(null);
     };
 
+    mediaQuery.addEventListener('change', checkStandalone);
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
+      mediaQuery.removeEventListener('change', checkStandalone);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
