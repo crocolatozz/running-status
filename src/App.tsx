@@ -1,7 +1,6 @@
 import {SearchX} from 'lucide-react';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {EquipmentRow} from './components/EquipmentRow';
-import {IOSInstallModal} from './components/IOSInstallModal';
 import {StickyHeader, type StatusFilter} from './components/StickyHeader';
 import {ToastContainer} from './components/ToastContainer';
 import {APP_VERSION} from './data/urea1bEquipments';
@@ -17,6 +16,7 @@ import type {
 import {formatTime24} from './utils/time';
 
 const TAP_COOLDOWN_MS = 400;
+const VERSION_STORAGE_KEY = 'rsc_app_version';
 
 function normalizeTagForSearch(value: string): string {
   return value.replace(/[-\s]+/g, '').toUpperCase();
@@ -28,7 +28,6 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [toasts, setToasts] = useState<ToastItem[]>([]);
-  const [isIOSGuideOpen, setIsIOSGuideOpen] = useState(false);
   const [syncMetadata, setSyncMetadata] = useState<FirestoreSyncMetadata>({
     fromCache: false,
     hasPendingWrites: false,
@@ -38,6 +37,7 @@ export default function App() {
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const toastTimersRef = useRef<Map<string, number>>(new Map());
   const lastTapByTagRef = useRef<Map<string, number>>(new Map());
+  const updateToastShownRef = useRef(false);
   const equipmentsRef = useRef<EquipmentRecord[]>(equipments);
   equipmentsRef.current = equipments;
 
@@ -90,26 +90,51 @@ export default function App() {
     return () => unsubscribe();
   }, [pushToast]);
 
+  // Reliable PWA update detection via localStorage version diff + SW controllerchange + foreground check
   useEffect(() => {
+    try {
+      const storedVersion = window.localStorage.getItem(VERSION_STORAGE_KEY);
+      if (storedVersion && storedVersion !== APP_VERSION && !updateToastShownRef.current) {
+        updateToastShownRef.current = true;
+        pushToast('info', `Updated to v${APP_VERSION}`, 'Latest application version is now active.');
+      }
+      window.localStorage.setItem(VERSION_STORAGE_KEY, APP_VERSION);
+    } catch {
+      // Ignore storage errors cleanly
+    }
+
     if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
       return;
     }
 
     const hadControllerOnLoad = Boolean(navigator.serviceWorker.controller);
-    if (!hadControllerOnLoad) {
-      return;
-    }
 
-    let notified = false;
     const handleControllerChange = () => {
-      if (notified) return;
-      notified = true;
+      if (!hadControllerOnLoad || updateToastShownRef.current) return;
+      updateToastShownRef.current = true;
       pushToast('info', `Updated to v${APP_VERSION}`, 'Latest application version is now active.');
+      try {
+        window.localStorage.setItem(VERSION_STORAGE_KEY, APP_VERSION);
+      } catch {
+        // Ignore storage errors cleanly
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void navigator.serviceWorker
+          .getRegistration()
+          .then((registration) => registration?.update())
+          .catch(() => {});
+      }
     };
 
     navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [pushToast]);
 
@@ -196,7 +221,7 @@ export default function App() {
   const hasActiveFilter = searchQuery.trim().length > 0 || statusFilter !== 'ALL';
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-[#0f172a] text-slate-100">
+    <div className="flex h-dvh flex-col overflow-hidden bg-[#0f172a] text-slate-100">
       <StickyHeader
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -206,13 +231,12 @@ export default function App() {
         syncMode={syncMode}
         isOnline={isOnline}
         syncMetadata={syncMetadata}
-        onPWAInstalled={() =>
-          pushToast('info', 'App installed', 'Running Status Checker added to your device.')
-        }
-        onOpenIOSGuide={() => setIsIOSGuideOpen(true)}
       />
 
-      <main className="scroll-container-y mx-auto w-full max-w-5xl flex-1 px-3 pt-4 pb-8 sm:px-6 sm:pt-6">
+      <main
+        className="scroll-container-y mx-auto min-h-0 w-full max-w-5xl flex-1 overflow-y-auto overscroll-y-contain px-3 pt-4 sm:px-6 sm:pt-6"
+        style={{paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.5rem)'}}
+      >
         <div className="mb-3 flex items-center justify-between gap-2 sm:mb-4">
           <h2 className="font-display text-lg font-bold tracking-wide text-slate-100 sm:text-xl">
             Urea 1B Equipment List
@@ -273,19 +297,16 @@ export default function App() {
             ))}
           </ul>
         )}
-      </main>
 
-      <footer className="border-t border-[#334155]/70 bg-[#0f172a] px-4 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-        <div className="mx-auto flex max-w-5xl items-center justify-center text-center text-xs text-slate-500 sm:justify-between">
+        <footer className="mt-8 border-t border-[#334155]/70 pt-4 text-center text-xs text-slate-500 sm:text-left">
           <span>
             ©2026 — Developed by FIKRI •{' '}
             <span className="font-mono tabular-nums">v{APP_VERSION}</span>
           </span>
-        </div>
-      </footer>
+        </footer>
+      </main>
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-      <IOSInstallModal isOpen={isIOSGuideOpen} onClose={() => setIsIOSGuideOpen(false)} />
     </div>
   );
 }

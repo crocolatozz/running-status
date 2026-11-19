@@ -13,13 +13,13 @@
 
   html,
   body {
-    min-height: 100dvh;
+    height: 100%;
     background-color: #0f172a;
     color: #f1f5f9;
     font-family: var(--font-sans);
-    overflow-x: hidden;
+    overflow: hidden;
     overscroll-behavior-y: none;
-    touch-action: manipulation;
+    touch-action: pan-y;
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
@@ -27,7 +27,7 @@
   }
 
   #root {
-    min-height: 100dvh;
+    height: 100%;
   }
 
   button,
@@ -46,7 +46,7 @@
 
 .scroll-container-y {
   touch-action: pan-y;
-  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 @media (prefers-reduced-motion: reduce) {

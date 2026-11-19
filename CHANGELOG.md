@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.1.1
+- Fixed vertical scrolling across iOS, Android, and desktop by keeping outer shell at `h-dvh flex flex-col overflow-hidden`, unlocking `touch-action: pan-y` in `index.css`, and making `<main>` an independent scrollable container (`flex-1 min-h-0 overflow-y-auto overscroll-y-contain`) with `calc(env(safe-area-inset-bottom, 0px) + 1.5rem)` bottom clearance.
+- Moved footer (`©2026 — Developed by FIKRI • v1.1.1`) cleanly inside the scrollable container above the iOS home bar.
+- Removed custom Install button and iOS tutorial modal (`PWAInstallButton.tsx`, `IOSInstallModal.tsx`, `usePWAInstall.ts`) so Android Chrome displays its native PWA install prompt uninterrupted and the header title has full breathing room.
+- Added reliable version-update detection (`localStorage` `rsc_app_version` comparison + `controllerchange` + `visibilitychange` `registration.update()`) to display `"Updated to v1.1.1"` without false first-visit toasts.
+- Synced version `v1.1.1` across footer, `APP_VERSION`, `package.json`, `README.md`, and `CHANGELOG.md`.
+
 ## v1.1.0
 - Fixed iPhone notch/Dynamic Island clearance by replacing header Tailwind padding overrides with inline `calc(env(safe-area-inset-top, 0px) + 0.75rem)` while preserving `viewport-fit=cover` and `100dvh` layout.
 - Unified header pulse SVG icon with `public/favicon.svg` and regenerated solid `#0f172a` PNG icons (`180x180`, `192x192`, `512x512`, and maskable `512x512`).

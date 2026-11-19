@@ -1,7 +1,6 @@
 import {Cloud, Database, RefreshCw, Search, WifiOff, X} from 'lucide-react';
 import type {RefObject} from 'react';
 import type {EquipmentStatus, FirestoreSyncMetadata, SyncMode} from '../types/equipment';
-import {PWAInstallButton} from './PWAInstallButton';
 
 export type StatusFilter = 'ALL' | EquipmentStatus;
 
@@ -14,8 +13,6 @@ interface StickyHeaderProps {
   syncMode: SyncMode;
   isOnline: boolean;
   syncMetadata: FirestoreSyncMetadata;
-  onPWAInstalled: () => void;
-  onOpenIOSGuide: () => void;
 }
 
 const FILTER_TABS: readonly {
@@ -54,8 +51,6 @@ export function StickyHeader({
   syncMode,
   isOnline,
   syncMetadata,
-  onPWAInstalled,
-  onOpenIOSGuide,
 }: StickyHeaderProps) {
   const renderSyncBadge = () => {
     if (syncMode !== 'firestore') {
@@ -119,7 +114,7 @@ export function StickyHeader({
 
   return (
     <header
-      className="sticky top-0 z-30 border-b border-[#334155] bg-[#0f172a]/95 backdrop-blur-md"
+      className="relative z-30 shrink-0 border-b border-[#334155] bg-[#0f172a]/95 backdrop-blur-md"
       style={{
         paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)',
         paddingBottom: '0.75rem',
@@ -148,10 +143,7 @@ export function StickyHeader({
             </h1>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
-            <PWAInstallButton onInstalled={onPWAInstalled} onOpenIOSGuide={onOpenIOSGuide} />
-            {renderSyncBadge()}
-          </div>
+          <div className="flex shrink-0 items-center">{renderSyncBadge()}</div>
         </div>
 
         {/* Bottom Row: Search Input & 4 Proportional Filter Tabs */}
