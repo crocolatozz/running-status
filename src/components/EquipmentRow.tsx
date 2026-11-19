@@ -22,7 +22,7 @@ const STATUS_OPTIONS: readonly {
     label: 'RUNNING',
     Icon: Play,
     activePillClass: 'bg-emerald-500 shadow-sm',
-    activeTextClass: 'font-semibold text-slate-950',
+    activeTextClass: 'font-bold text-slate-950',
     translateClass: 'translate-x-0',
   },
   {
@@ -30,7 +30,7 @@ const STATUS_OPTIONS: readonly {
     label: 'STANDBY',
     Icon: Pause,
     activePillClass: 'bg-amber-500 shadow-sm',
-    activeTextClass: 'font-semibold text-slate-950',
+    activeTextClass: 'font-bold text-slate-950',
     translateClass: 'translate-x-full',
   },
   {
@@ -38,7 +38,7 @@ const STATUS_OPTIONS: readonly {
     label: 'IGNORE',
     Icon: Ban,
     activePillClass: 'bg-slate-600 shadow-sm',
-    activeTextClass: 'font-semibold text-slate-100',
+    activeTextClass: 'font-bold text-white',
     translateClass: 'translate-x-[200%]',
   },
 ];
@@ -99,11 +99,11 @@ export const EquipmentRow = memo(function EquipmentRow({
                     onStatusChange(equipment.tag, value);
                   }
                 }}
-                className={`relative z-10 flex min-h-[42px] items-center justify-center gap-1.5 rounded-md px-2 text-[11px] tracking-wide transition-colors duration-150 active:scale-95 whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-emerald-400 sm:min-h-[38px] sm:text-xs ${
-                  isActive ? activeTextClass : 'font-medium text-slate-400 hover:text-slate-200'
+                className={`relative z-10 flex min-h-[42px] items-center justify-center gap-1.5 rounded-md px-2 text-[12.5px] font-bold tracking-wide transition-colors duration-150 active:scale-95 whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-emerald-400 sm:min-h-[38px] ${
+                  isActive ? activeTextClass : 'text-slate-300 hover:text-white'
                 }`}
               >
-                <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <Icon className="h-3.5 w-3.5 shrink-0 stroke-[2.5]" aria-hidden="true" />
                 <span>{label}</span>
               </button>
             );

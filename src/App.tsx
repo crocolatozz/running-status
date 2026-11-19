@@ -221,7 +221,10 @@ export default function App() {
   const hasActiveFilter = searchQuery.trim().length > 0 || statusFilter !== 'ALL';
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-[#0f172a] text-slate-100">
+    <div
+      className="flex flex-col overflow-hidden bg-[#0f172a] text-slate-100"
+      style={{height: 'calc(100dvh + env(safe-area-inset-bottom, 0px))'}}
+    >
       <StickyHeader
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -298,11 +301,12 @@ export default function App() {
           </ul>
         )}
 
-        <footer className="mt-8 border-t border-[#334155]/70 pt-4 text-center text-xs text-slate-500 sm:text-left">
-          <span>
-            ©2026 — Developed by FIKRI •{' '}
+        <footer className="mt-8 border-t border-[#334155]/70 pt-4 text-xs text-slate-500">
+          <div className="flex items-center justify-center gap-3">
+            <span>©2026 — Developed by FIKRI</span>
+            <span aria-hidden="true">•</span>
             <span className="font-mono tabular-nums">v{APP_VERSION}</span>
-          </span>
+          </div>
         </footer>
       </main>
 

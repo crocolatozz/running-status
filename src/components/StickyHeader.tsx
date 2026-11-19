@@ -114,7 +114,7 @@ export function StickyHeader({
 
   return (
     <header
-      className="relative z-30 shrink-0 border-b border-[#334155] bg-[#0f172a]/95 backdrop-blur-md"
+      className="relative z-30 shrink-0 border-b border-[#334155] bg-[#0f172a]"
       style={{
         paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)',
         paddingBottom: '0.75rem',
@@ -191,10 +191,10 @@ export function StickyHeader({
                   type="button"
                   onClick={() => onStatusFilterChange(value)}
                   aria-pressed={isActive}
-                  className={`flex min-h-[38px] items-center justify-center rounded-lg border px-1.5 text-[11px] font-semibold tracking-wider transition-colors active:scale-95 whitespace-nowrap sm:min-h-[40px] sm:text-xs ${
+                  className={`flex min-h-[38px] items-center justify-center rounded-lg border px-1.5 text-xs font-extrabold tracking-wide transition-colors active:scale-95 whitespace-nowrap sm:min-h-[40px] ${
                     isActive
                       ? activeClass
-                      : 'border-[#334155] bg-[#1e293b] text-slate-400 hover:border-slate-500 hover:text-slate-200'
+                      : 'border-[#334155] bg-[#1e293b] text-slate-200 hover:border-slate-500 hover:text-white'
                   }`}
                 >
                   {label}

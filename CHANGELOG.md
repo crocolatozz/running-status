@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.1.2
+- Eliminated the iOS Safari bottom black bar by setting outer shell height to `calc(100dvh + env(safe-area-inset-bottom, 0px))` and locking `html, body, #root` background-color to `#0f172a` while preserving independent `<main>` vertical scrolling.
+- Removed header `backdrop-blur` and semi-transparency in favor of a solid opaque `bg-[#0f172a]` header with `safe-area-inset-top` clearance.
+- Improved outdoor contrast and readability on the 4 filter tabs (`text-xs font-extrabold tracking-wide`, inactive `text-slate-200`) and card 3-state status buttons (`text-[12.5px] font-bold`, `stroke-[2.5]` icons, inactive `text-slate-300`), leaving equipment tags and timestamps unchanged.
+- Centered the footer with balanced spacing (`gap-3` around `•`) and synced version `v1.1.2` across footer, `APP_VERSION`, `package.json`, `README.md`, and `CHANGELOG.md`.
+
 ## v1.1.1
 - Fixed vertical scrolling across iOS, Android, and desktop by keeping outer shell at `h-dvh flex flex-col overflow-hidden`, unlocking `touch-action: pan-y` in `index.css`, and making `<main>` an independent scrollable container (`flex-1 min-h-0 overflow-y-auto overscroll-y-contain`) with `calc(env(safe-area-inset-bottom, 0px) + 1.5rem)` bottom clearance.
 - Moved footer (`©2026 — Developed by FIKRI • v1.1.1`) cleanly inside the scrollable container above the iOS home bar.
