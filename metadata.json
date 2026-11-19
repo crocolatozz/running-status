@@ -1,0 +1,6 @@
+{
+  "name": "Running Status Checker",
+  "description": "Real-time monitoring and status control for Urea 1B plant equipment.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
