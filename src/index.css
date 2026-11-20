@@ -12,12 +12,16 @@
   }
 
   html,
-  body {
-    height: 100%;
+  body,
+  #root {
     background-color: #0f172a;
+  }
+
+  html,
+  body {
     color: #f1f5f9;
     font-family: var(--font-sans);
-    overflow: hidden;
+    overflow-x: clip;
     overscroll-behavior-y: none;
     touch-action: pan-y;
     user-select: none;
@@ -26,9 +30,16 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  #root {
-    height: 100%;
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top, 0px);
     background-color: #0f172a;
+    z-index: 40;
+    pointer-events: none;
   }
 
   button,
@@ -45,9 +56,22 @@
   }
 }
 
-.scroll-container-y {
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
+.app-shell {
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+}
+
+@keyframes appFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.app-fade-in {
+  animation: appFadeIn 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

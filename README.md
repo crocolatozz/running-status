@@ -1,12 +1,13 @@
-# Running Status Checker (`v1.1.2`)
+# Running Status Checker (`v1.2.0`)
 
 Real-time Progressive Web App (PWA) for monitoring and updating the running status (`RUNNING`, `STANDBY`, `IGNORE`) of all 56 Urea 1B plant equipment units.
 
 ## Key Capabilities
+- **1-Layer Native PWA Splash Screen**: Zero HTML overlays or JS timers; uses `manifest.json` WebAPK splash on Android and zero-dependency Node-generated static portrait PNGs (`scripts/generate-splash.mjs`) for iOS `apple-touch-startup-image` across 10 iPhone resolutions, all precached offline via Workbox.
 - **Real-Time Cloud Firestore Sync**: Uses `onSnapshot(..., { includeMetadataChanges: true })` over the `equipments` collection with multi-tab IndexedDB persistence (`persistentLocalCache` + `persistentMultipleTabManager`).
 - **Live Sync Telemetry**: Dynamically reflects `Live Sync` (emerald), `Syncing...` (amber), and `Offline Mode` (orange) from Firestore snapshot metadata (`fromCache`, `hasPendingWrites`) and browser connectivity, with zero-shift amber clock indicators on pending rows.
-- **Mobile Field Ergonomics**: Strict dark industrial UI (`#0f172a` / `#1e293b` / `#10b981`), `calc(100dvh + env(safe-area-inset-bottom))` anti-black-bar shell with smooth vertical `pan-y` scrolling, solid opaque header with iOS notch safe-area padding, high-contrast outdoor tabs & status pills, anti-zoom `16px` search input, `400ms` per-tag double-tap cooldown, and hyphen/space-insensitive tag search.
-- **Installable PWA**: Unified pulse SVG and solid `#0f172a` PNG icons (`180x180`, `192x192`, `512x512`), native browser install prompt support, Workbox `autoUpdate` (`skipWaiting`/`clientsClaim`), foreground `visibilitychange` update checks, and reliable `"Updated to v1.1.2"` toast notifications.
+- **Seamless iOS & Android Ergonomics**: Pure CSS opacity-only entrance (`appFadeIn`) with Safari `bfcache` `pageshow` guard, fixed `body::before` iOS status bar shield (`z-40`), solid opaque sticky header (`z-30`), natural document scroll with anti-black-bar `100dvh`/`-webkit-fill-available` shell, high-contrast outdoor tabs & overflow-clipped sliding status pills, `400ms` per-tag double-tap cooldown, and hyphen/space-insensitive tag search.
+- **Auto-Updating PWA**: Workbox `autoUpdate` (`skipWaiting`/`clientsClaim`), single-execution `controllerchange` auto-reload guard for Safari iOS, foreground `visibilitychange` checks, and `rsc_app_version` update confirmation toast (`"Updated to v1.2.0"`).
 
 ## Development & Build
 ```bash
@@ -16,4 +17,4 @@ npm run build
 ```
 
 ---
-©2026 — Developed by FIKRI • v1.1.2
+©2026 — Developed by FIKRI • v1.2.0

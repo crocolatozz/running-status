@@ -114,7 +114,7 @@ export function StickyHeader({
 
   return (
     <header
-      className="relative z-30 shrink-0 border-b border-[#334155] bg-[#0f172a]"
+      className="sticky top-0 z-30 border-b border-[#334155] bg-[#0f172a]"
       style={{
         paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)',
         paddingBottom: '0.75rem',

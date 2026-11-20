@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.2.0
+- Added a 1-layer native PWA splash screen system with zero HTML overlays or JS timers: native Android WebAPK manifest splash plus a zero-dependency Node.js prebuild script (`scripts/generate-splash.mjs`) generating 10 portrait iOS `apple-touch-startup-image` PNGs (`1320x2868` down to `750x1334`) precached offline via `splash/*.png` in Workbox.
+- Added a pure CSS `opacity`-only entrance animation (`appFadeIn`, 380ms) with zero parent `transform` rules so `position: sticky` stays intact on iOS Safari, paired with a `pageshow` `bfcache` opacity guard.
+- Implemented seamless iOS status bar and anti-bottom-black-bar layout: inline `#0f172a` background on `<html>` and `<body>`, fixed `body::before` top safe-area shield (`z-40`), natural document scrolling (`overflow-x: clip`, `min-height: 100dvh / -webkit-fill-available`), solid opaque sticky `<header>` (`z-30`), and `z-50` top toasts.
+- Added a single-execution Service Worker `controllerchange` auto-reload guard for iOS Safari alongside `rsc_app_version` update toast detection (`"Updated to v1.2.0"`).
+- Added `overflow-hidden` to each card's 3-state status selector track so the sliding active pill stays cleanly clipped on narrow `320px–360px` Android screens.
+- Synced version `v1.2.0` across `APP_VERSION`, footer (`©2026 — Developed by FIKRI • v1.2.0`), `package.json`, `README.md`, and `CHANGELOG.md`.
+
 ## v1.1.2
 - Eliminated the iOS Safari bottom black bar by setting outer shell height to `calc(100dvh + env(safe-area-inset-bottom, 0px))` and locking `html, body, #root` background-color to `#0f172a` while preserving independent `<main>` vertical scrolling.
 - Removed header `backdrop-blur` and semi-transparency in favor of a solid opaque `bg-[#0f172a]` header with `safe-area-inset-top` clearance.

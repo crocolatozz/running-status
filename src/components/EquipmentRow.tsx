@@ -79,9 +79,9 @@ export const EquipmentRow = memo(function EquipmentRow({
       <div
         role="group"
         aria-label={`Status selector for ${equipment.tag}`}
-        className="rounded-lg border border-[#334155] bg-[#0f172a] p-1 md:w-[320px] md:shrink-0"
+        className="overflow-hidden rounded-lg border border-[#334155] bg-[#0f172a] p-1 md:w-[320px] md:shrink-0"
       >
-        <div className="relative grid grid-cols-3">
+        <div className="relative grid grid-cols-3 overflow-hidden rounded-md">
           <div
             aria-hidden="true"
             className={`pointer-events-none absolute inset-y-0 left-0 w-1/3 rounded-md transition-all duration-200 ease-out ${activeOption.translateClass} ${activeOption.activePillClass}`}

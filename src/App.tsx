@@ -34,9 +34,11 @@ export default function App() {
   });
   const [now, setNow] = useState(() => Date.now());
 
+  const appRootRef = useRef<HTMLDivElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const toastTimersRef = useRef<Map<string, number>>(new Map());
   const lastTapByTagRef = useRef<Map<string, number>>(new Map());
+  const hasReloadedRef = useRef(false);
   const updateToastShownRef = useRef(false);
   const equipmentsRef = useRef<EquipmentRecord[]>(equipments);
   equipmentsRef.current = equipments;
@@ -74,6 +76,18 @@ export default function App() {
     };
   }, []);
 
+  // Safari bfcache guard: explicitly enforce opacity = '1' when resuming from background
+  useEffect(() => {
+    const handlePageShow = () => {
+      if (appRootRef.current) {
+        appRootRef.current.style.opacity = '1';
+      }
+    };
+
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []);
+
   useEffect(() => {
     const unsubscribe = subscribeEquipments(
       (records, metadata) => {
@@ -90,7 +104,7 @@ export default function App() {
     return () => unsubscribe();
   }, [pushToast]);
 
-  // Reliable PWA update detection via localStorage version diff + SW controllerchange + foreground check
+  // Version comparison toast + single-execution controllerchange auto-reload + foreground update check
   useEffect(() => {
     try {
       const storedVersion = window.localStorage.getItem(VERSION_STORAGE_KEY);
@@ -110,14 +124,9 @@ export default function App() {
     const hadControllerOnLoad = Boolean(navigator.serviceWorker.controller);
 
     const handleControllerChange = () => {
-      if (!hadControllerOnLoad || updateToastShownRef.current) return;
-      updateToastShownRef.current = true;
-      pushToast('info', `Updated to v${APP_VERSION}`, 'Latest application version is now active.');
-      try {
-        window.localStorage.setItem(VERSION_STORAGE_KEY, APP_VERSION);
-      } catch {
-        // Ignore storage errors cleanly
-      }
+      if (!hadControllerOnLoad || hasReloadedRef.current) return;
+      hasReloadedRef.current = true;
+      window.location.reload();
     };
 
     const handleVisibilityChange = () => {
@@ -222,8 +231,9 @@ export default function App() {
 
   return (
     <div
-      className="flex flex-col overflow-hidden bg-[#0f172a] text-slate-100"
-      style={{height: 'calc(100dvh + env(safe-area-inset-bottom, 0px))'}}
+      ref={appRootRef}
+      className="app-shell app-fade-in flex flex-col bg-[#0f172a] text-slate-100"
+      style={{paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.5rem)'}}
     >
       <StickyHeader
         searchQuery={searchQuery}
@@ -236,10 +246,7 @@ export default function App() {
         syncMetadata={syncMetadata}
       />
 
-      <main
-        className="scroll-container-y mx-auto min-h-0 w-full max-w-5xl flex-1 overflow-y-auto overscroll-y-contain px-3 pt-4 sm:px-6 sm:pt-6"
-        style={{paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.5rem)'}}
-      >
+      <main className="mx-auto w-full max-w-5xl flex-1 px-3 pt-4 pb-6 sm:px-6 sm:pt-6">
         <div className="mb-3 flex items-center justify-between gap-2 sm:mb-4">
           <h2 className="font-display text-lg font-bold tracking-wide text-slate-100 sm:text-xl">
             Urea 1B Equipment List
@@ -300,15 +307,17 @@ export default function App() {
             ))}
           </ul>
         )}
+      </main>
 
-        <footer className="mt-8 border-t border-[#334155]/70 pt-4 text-xs text-slate-500">
+      <footer className="mx-auto w-full max-w-5xl px-3 pt-2 sm:px-6">
+        <div className="border-t border-[#334155]/70 pt-4 text-xs text-slate-500">
           <div className="flex items-center justify-center gap-3">
             <span>©2026 — Developed by FIKRI</span>
             <span aria-hidden="true">•</span>
             <span className="font-mono tabular-nums">v{APP_VERSION}</span>
           </div>
-        </footer>
-      </main>
+        </div>
+      </footer>
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>

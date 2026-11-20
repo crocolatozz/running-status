@@ -14,7 +14,14 @@ export default defineConfig(() => {
       VitePWA({
         registerType: 'autoUpdate',
         manifestFilename: 'manifest.json',
-        includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png', 'pwa-maskable-512x512.png'],
+        includeAssets: [
+          'favicon.svg',
+          'apple-touch-icon.png',
+          'pwa-192x192.png',
+          'pwa-512x512.png',
+          'pwa-maskable-512x512.png',
+          'splash/*.png',
+        ],
         manifest: {
           id: './',
           name: 'Running Status Checker',
