@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.3.0
+- Rebranded the application from `Running Status Checker` to **Running Status** across UI header, `index.html` title/OpenGraph/iOS meta tags, `manifest.json` (`name` and `short_name`), `package.json` (`running-status`), `README.md`, and `CHANGELOG.md` while keeping `base: './'` for repository rename compatibility and preserving Firebase (`urea1b-running-status`) and `rsc_app_version` storage keys.
+- Refined header visual hierarchy (`text-xl sm:text-2xl font-bold tracking-tight` title with `w-6 h-6 sm:w-7 sm:h-7` pulse waveform SVG) and increased header top clearance to `calc(env(safe-area-inset-top, 0px) + 26px)` beneath the `z-40` top shield.
+- Synced version `v1.3.0` across `APP_VERSION` (`"Updated to v1.3.0"`), footer (`©2026 — Developed by FIKRI • v1.3.0`), `package.json`, `README.md`, and `CHANGELOG.md`.
+
 ## v1.2.0
 - Added a 1-layer native PWA splash screen system with zero HTML overlays or JS timers: native Android WebAPK manifest splash plus a zero-dependency Node.js prebuild script (`scripts/generate-splash.mjs`) generating 10 portrait iOS `apple-touch-startup-image` PNGs (`1320x2868` down to `750x1334`) precached offline via `splash/*.png` in Workbox.
 - Added a pure CSS `opacity`-only entrance animation (`appFadeIn`, 380ms) with zero parent `transform` rules so `position: sticky` stays intact on iOS Safari, paired with a `pageshow` `bfcache` opacity guard.
@@ -44,4 +49,4 @@
 - Connected Cloud Firestore (`urea1b-running-status`), hardened missing-doc batch seeding with `{ merge: true }`, removed Reset All, and set `base: './'`.
 
 ## v1.0.0
-- Initial release of Running Status Checker for 56 alphabetical Urea 1B plant equipment tags.
+- Initial release of Running Status for 56 alphabetical Urea 1B plant equipment tags.

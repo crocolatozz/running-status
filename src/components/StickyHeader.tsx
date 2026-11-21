@@ -116,18 +116,18 @@ export function StickyHeader({
     <header
       className="sticky top-0 z-30 border-b border-[#334155] bg-[#0f172a]"
       style={{
-        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)',
+        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 26px)',
         paddingBottom: '0.75rem',
       }}
     >
       <div className="mx-auto max-w-5xl px-3 sm:px-6">
         {/* Top Row: Unified Pulse SVG + Brand Title & Sync Telemetry */}
         <div className="flex items-center justify-between gap-2.5">
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2.5">
             <svg
               viewBox="0 0 24 24"
               fill="none"
-              className="h-5 w-5 shrink-0 text-[#10b981]"
+              className="h-6 w-6 shrink-0 text-[#10b981] sm:h-7 sm:w-7"
               aria-hidden="true"
             >
               <path
@@ -138,8 +138,8 @@ export function StickyHeader({
                 strokeLinejoin="round"
               />
             </svg>
-            <h1 className="truncate font-display text-xl font-bold tracking-wide text-slate-100 sm:text-2xl">
-              Running Status Checker
+            <h1 className="truncate font-display text-xl font-bold tracking-tight text-slate-100 sm:text-2xl">
+              Running Status
             </h1>
           </div>
 

@@ -24,7 +24,7 @@ export default defineConfig(() => {
         ],
         manifest: {
           id: './',
-          name: 'Running Status Checker',
+          name: 'Running Status',
           short_name: 'Running Status',
           description: 'Real-time monitoring and status control for Urea 1B plant equipment.',
           theme_color: '#0f172a',
