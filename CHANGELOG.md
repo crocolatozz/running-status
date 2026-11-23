@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.4.0
+- Added interactive header version pill (`v1.4.0`) immediately to the right of `Running Status` (`text-lg sm:text-2xl`) with neutral dark state and high-contrast amber update-ready indicator, keeping the top row cleanly aligned on narrow mobile viewports.
+- Added a dark Changelog & Updates modal (`z-50`) featuring an accordion release history (`v1.4.0` expanded by default, prior releases collapsed) and a manual `Check Update` button with offline and up-to-date toast feedback.
+- Upgraded PWA update handling with `registerType: 'prompt'`, Smart Forced Update with 4-second user Idle Guard (`pointerdown`, `touchstart`, `keydown`, `scroll`), Firestore pending-writes Sync Guard (`hasPendingWrites`), AI Studio preview sandbox guard, `1.5s` pre-reload toast (`"Update available — reloading..."`), and post-reload confirmation (`"Updated to v1.4.0"` via `rsc_app_version` + `sessionStorage` flag).
+- Raised `ToastContainer` to `z-[60]` (`pointer-events-none` wrapper) and added matching amber updating and emerald success toast styles.
+- Replaced relative card timestamps with static 24-hour `DD/MM/YY · HH:mm` timestamps (`tabular-nums`) and local device time fallback.
+- Synced `v1.4.0` across `APP_VERSION`, `package.json`, `README.md`, `CHANGELOG.md`, header pill, and modal changelog, and simplified footer to `©2026 — Developed by FIKRI`.
+
 ## v1.3.0
 - Rebranded the application from `Running Status Checker` to **Running Status** across UI header, `index.html` title/OpenGraph/iOS meta tags, `manifest.json` (`name` and `short_name`), `package.json` (`running-status`), `README.md`, and `CHANGELOG.md` while keeping `base: './'` for repository rename compatibility and preserving Firebase (`urea1b-running-status`) and `rsc_app_version` storage keys.
 - Refined header visual hierarchy (`text-xl sm:text-2xl font-bold tracking-tight` title with `w-6 h-6 sm:w-7 sm:h-7` pulse waveform SVG) and increased header top clearance to `calc(env(safe-area-inset-top, 0px) + 26px)` beneath the `z-40` top shield.

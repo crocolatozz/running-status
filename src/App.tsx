@@ -1,10 +1,11 @@
 import {SearchX} from 'lucide-react';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {ChangelogModal} from './components/ChangelogModal';
 import {EquipmentRow} from './components/EquipmentRow';
 import {StickyHeader, type StatusFilter} from './components/StickyHeader';
 import {ToastContainer} from './components/ToastContainer';
-import {APP_VERSION} from './data/urea1bEquipments';
 import {useOnlineStatus} from './hooks/useOnlineStatus';
+import {useSmartPwaUpdate} from './hooks/useSmartPwaUpdate';
 import {getSyncMode, subscribeEquipments, updateEquipmentStatus} from './services/firebase';
 import type {
   EquipmentRecord,
@@ -16,7 +17,6 @@ import type {
 import {formatTime24} from './utils/time';
 
 const TAP_COOLDOWN_MS = 400;
-const VERSION_STORAGE_KEY = 'rsc_app_version';
 
 function normalizeTagForSearch(value: string): string {
   return value.replace(/[-\s]+/g, '').toUpperCase();
@@ -28,18 +28,16 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [isChangelogOpen, setIsChangelogOpen] = useState(false);
   const [syncMetadata, setSyncMetadata] = useState<FirestoreSyncMetadata>({
     fromCache: false,
     hasPendingWrites: false,
   });
-  const [now, setNow] = useState(() => Date.now());
 
   const appRootRef = useRef<HTMLDivElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const toastTimersRef = useRef<Map<string, number>>(new Map());
   const lastTapByTagRef = useRef<Map<string, number>>(new Map());
-  const hasReloadedRef = useRef(false);
-  const updateToastShownRef = useRef(false);
   const equipmentsRef = useRef<EquipmentRecord[]>(equipments);
   equipmentsRef.current = equipments;
 
@@ -67,6 +65,23 @@ export default function App() {
     },
     [dismissToast],
   );
+
+  const hasAnyPendingWrites = useMemo(
+    () =>
+      syncMetadata.hasPendingWrites ||
+      equipments.some((item) => Boolean(item.hasPendingWrites)),
+    [equipments, syncMetadata.hasPendingWrites],
+  );
+
+  const {
+    updateAvailable,
+    isCheckingUpdate,
+    isReloadingForUpdate,
+    checkForUpdates,
+  } = useSmartPwaUpdate({
+    hasPendingWrites: hasAnyPendingWrites,
+    pushToast,
+  });
 
   useEffect(() => {
     const timersMap = toastTimersRef.current;
@@ -104,60 +119,11 @@ export default function App() {
     return () => unsubscribe();
   }, [pushToast]);
 
-  // Version comparison toast + single-execution controllerchange auto-reload + foreground update check
-  useEffect(() => {
-    try {
-      const storedVersion = window.localStorage.getItem(VERSION_STORAGE_KEY);
-      if (storedVersion && storedVersion !== APP_VERSION && !updateToastShownRef.current) {
-        updateToastShownRef.current = true;
-        pushToast('info', `Updated to v${APP_VERSION}`, 'Latest application version is now active.');
-      }
-      window.localStorage.setItem(VERSION_STORAGE_KEY, APP_VERSION);
-    } catch {
-      // Ignore storage errors cleanly
-    }
-
-    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
-      return;
-    }
-
-    const hadControllerOnLoad = Boolean(navigator.serviceWorker.controller);
-
-    const handleControllerChange = () => {
-      if (!hadControllerOnLoad || hasReloadedRef.current) return;
-      hasReloadedRef.current = true;
-      window.location.reload();
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        void navigator.serviceWorker
-          .getRegistration()
-          .then((registration) => registration?.update())
-          .catch(() => {});
-      }
-    };
-
-    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [pushToast]);
-
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setNow(Date.now());
-    }, 30_000);
-    return () => window.clearInterval(interval);
-  }, []);
-
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
         event.key === '/' &&
+        !isChangelogOpen &&
         document.activeElement?.tagName !== 'INPUT' &&
         document.activeElement?.tagName !== 'TEXTAREA'
       ) {
@@ -167,7 +133,7 @@ export default function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isChangelogOpen]);
 
   const filteredEquipments = useMemo(() => {
     const normalizedQuery = normalizeTagForSearch(searchQuery);
@@ -193,8 +159,6 @@ export default function App() {
         return;
       }
       lastTapByTagRef.current.set(tag, tapTimestamp);
-
-      setNow(tapTimestamp);
 
       setEquipments((prev) =>
         prev.map((item) =>
@@ -244,6 +208,10 @@ export default function App() {
         syncMode={syncMode}
         isOnline={isOnline}
         syncMetadata={syncMetadata}
+        updateAvailable={updateAvailable}
+        isCheckingUpdate={isCheckingUpdate}
+        isReloadingForUpdate={isReloadingForUpdate}
+        onOpenChangelog={() => setIsChangelogOpen(true)}
       />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-3 pt-4 pb-6 sm:px-6 sm:pt-6">
@@ -301,7 +269,6 @@ export default function App() {
               <EquipmentRow
                 key={equipment.tag}
                 equipment={equipment}
-                now={now}
                 onStatusChange={handleStatusChange}
               />
             ))}
@@ -310,14 +277,19 @@ export default function App() {
       </main>
 
       <footer className="mx-auto w-full max-w-5xl px-3 pt-2 sm:px-6">
-        <div className="border-t border-[#334155]/70 pt-4 text-xs text-slate-500">
-          <div className="flex items-center justify-center gap-3">
-            <span>©2026 — Developed by FIKRI</span>
-            <span aria-hidden="true">•</span>
-            <span className="font-mono tabular-nums">v{APP_VERSION}</span>
-          </div>
+        <div className="border-t border-[#334155]/70 pt-4 text-center text-xs text-slate-500">
+          <span>©2026 — Developed by FIKRI</span>
         </div>
       </footer>
+
+      <ChangelogModal
+        isOpen={isChangelogOpen}
+        onClose={() => setIsChangelogOpen(false)}
+        updateAvailable={updateAvailable}
+        isCheckingUpdate={isCheckingUpdate}
+        isReloadingForUpdate={isReloadingForUpdate}
+        onCheckUpdate={checkForUpdates}
+      />
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>

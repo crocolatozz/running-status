@@ -1,5 +1,6 @@
 import {Cloud, Database, RefreshCw, Search, WifiOff, X} from 'lucide-react';
 import type {RefObject} from 'react';
+import {APP_VERSION} from '../data/urea1bEquipments';
 import type {EquipmentStatus, FirestoreSyncMetadata, SyncMode} from '../types/equipment';
 
 export type StatusFilter = 'ALL' | EquipmentStatus;
@@ -13,6 +14,10 @@ interface StickyHeaderProps {
   syncMode: SyncMode;
   isOnline: boolean;
   syncMetadata: FirestoreSyncMetadata;
+  updateAvailable: boolean;
+  isCheckingUpdate: boolean;
+  isReloadingForUpdate: boolean;
+  onOpenChangelog: () => void;
 }
 
 const FILTER_TABS: readonly {
@@ -51,12 +56,18 @@ export function StickyHeader({
   syncMode,
   isOnline,
   syncMetadata,
+  updateAvailable,
+  isCheckingUpdate,
+  isReloadingForUpdate,
+  onOpenChangelog,
 }: StickyHeaderProps) {
+  const hasPendingUpdate = updateAvailable || isReloadingForUpdate;
+
   const renderSyncBadge = () => {
     if (syncMode !== 'firestore') {
       return (
         <div
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-[#334155] bg-[#1e293b] px-2 py-1 text-[11px] font-medium text-slate-300 whitespace-nowrap"
+          className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[#334155] bg-[#1e293b] px-2 py-1 text-[11px] font-medium text-slate-300 whitespace-nowrap sm:gap-1.5"
           title="Running in local browser storage mode"
         >
           <Database className="h-3 w-3 shrink-0 text-emerald-400" aria-hidden="true" />
@@ -68,7 +79,7 @@ export function StickyHeader({
     if (!isOnline) {
       return (
         <div
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-orange-500/35 bg-orange-500/10 px-2 py-1 text-[11px] font-medium text-orange-300 whitespace-nowrap"
+          className="inline-flex shrink-0 items-center gap-1 rounded-md border border-orange-500/35 bg-orange-500/10 px-2 py-1 text-[11px] font-medium text-orange-300 whitespace-nowrap sm:gap-1.5"
           title="Offline Mode — Cached data active, updates queued locally"
         >
           <WifiOff className="h-3 w-3 shrink-0" aria-hidden="true" />
@@ -80,7 +91,7 @@ export function StickyHeader({
     if (syncMetadata.hasPendingWrites) {
       return (
         <div
-          className="inline-flex shrink-0 animate-pulse items-center gap-1.5 rounded-md border border-amber-500/35 bg-amber-500/10 px-2 py-1 text-[11px] font-medium text-amber-300 whitespace-nowrap"
+          className="inline-flex shrink-0 animate-pulse items-center gap-1 rounded-md border border-amber-500/35 bg-amber-500/10 px-2 py-1 text-[11px] font-medium text-amber-300 whitespace-nowrap sm:gap-1.5"
           title="Syncing pending updates to Cloud Firestore"
         >
           <RefreshCw className="h-3 w-3 shrink-0" aria-hidden="true" />
@@ -92,7 +103,7 @@ export function StickyHeader({
     if (syncMetadata.fromCache) {
       return (
         <div
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-orange-500/35 bg-orange-500/10 px-2 py-1 text-[11px] font-medium text-orange-300 whitespace-nowrap"
+          className="inline-flex shrink-0 items-center gap-1 rounded-md border border-orange-500/35 bg-orange-500/10 px-2 py-1 text-[11px] font-medium text-orange-300 whitespace-nowrap sm:gap-1.5"
           title="Serving cached snapshot — awaiting live server sync"
         >
           <WifiOff className="h-3 w-3 shrink-0" aria-hidden="true" />
@@ -103,7 +114,7 @@ export function StickyHeader({
 
     return (
       <div
-        className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-emerald-500/35 bg-emerald-500/10 px-2 py-1 text-[11px] font-medium text-emerald-300 whitespace-nowrap"
+        className="inline-flex shrink-0 items-center gap-1 rounded-md border border-emerald-500/35 bg-emerald-500/10 px-2 py-1 text-[11px] font-medium text-emerald-300 whitespace-nowrap sm:gap-1.5"
         title="Live Sync — Connected to Cloud Firestore"
       >
         <Cloud className="h-3 w-3 shrink-0" aria-hidden="true" />
@@ -121,13 +132,13 @@ export function StickyHeader({
       }}
     >
       <div className="mx-auto max-w-5xl px-3 sm:px-6">
-        {/* Top Row: Unified Pulse SVG + Brand Title & Sync Telemetry */}
-        <div className="flex items-center justify-between gap-2.5">
-          <div className="flex min-w-0 items-center gap-2.5">
+        {/* Top Row: Unified Pulse SVG + Brand Title + Version Pill & Sync Telemetry */}
+        <div className="flex items-center justify-between gap-1.5 sm:gap-2.5">
+          <div className="flex min-w-0 items-center gap-1.5 sm:gap-2.5">
             <svg
               viewBox="0 0 24 24"
               fill="none"
-              className="h-6 w-6 shrink-0 text-[#10b981] sm:h-7 sm:w-7"
+              className="h-5 w-5 shrink-0 text-[#10b981] sm:h-7 sm:w-7"
               aria-hidden="true"
             >
               <path
@@ -138,9 +149,36 @@ export function StickyHeader({
                 strokeLinejoin="round"
               />
             </svg>
-            <h1 className="truncate font-display text-xl font-bold tracking-tight text-slate-100 sm:text-2xl">
+            <h1 className="truncate font-display text-lg font-bold tracking-tight text-slate-100 sm:text-2xl">
               Running Status
             </h1>
+            <button
+              type="button"
+              onClick={onOpenChangelog}
+              aria-label={
+                hasPendingUpdate
+                  ? `Version ${APP_VERSION} — update ready, open changelog`
+                  : `Version ${APP_VERSION} — open changelog and check for updates`
+              }
+              title={
+                hasPendingUpdate
+                  ? 'Update ready — waiting for safe idle/sync window'
+                  : 'View changelog & check for updates'
+              }
+              className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[11px] font-semibold tabular-nums transition-colors active:scale-95 whitespace-nowrap ${
+                hasPendingUpdate
+                  ? 'border-amber-500/60 bg-amber-500/15 text-amber-300 hover:bg-amber-500/25'
+                  : 'border-[#334155] bg-[#1e293b] text-slate-300 hover:border-slate-500 hover:text-slate-100'
+              }`}
+            >
+              <span>v{APP_VERSION}</span>
+              <RefreshCw
+                className={`h-2.5 w-2.5 shrink-0 ${
+                  isCheckingUpdate || hasPendingUpdate ? 'animate-spin' : ''
+                }`}
+                aria-hidden="true"
+              />
+            </button>
           </div>
 
           <div className="flex shrink-0 items-center">{renderSyncBadge()}</div>

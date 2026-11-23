@@ -1,4 +1,4 @@
-import {AlertCircle, Ban, CheckCircle2, Clock, Info, X} from 'lucide-react';
+import {AlertCircle, Ban, CheckCircle2, Clock, Info, RefreshCw, X} from 'lucide-react';
 import type {ToastItem, ToastVariant} from '../types/equipment';
 
 interface ToastContainerProps {
@@ -21,11 +21,23 @@ const VARIANT_STYLES: Record<
     titleColor: 'text-emerald-200',
     Icon: CheckCircle2,
   },
+  success: {
+    container: 'border-emerald-500/45 bg-[#1e293b]/95',
+    iconColor: 'text-emerald-400',
+    titleColor: 'text-emerald-200',
+    Icon: CheckCircle2,
+  },
   standby: {
     container: 'border-amber-500/45 bg-[#1e293b]/95',
     iconColor: 'text-amber-400',
     titleColor: 'text-amber-200',
     Icon: Clock,
+  },
+  updating: {
+    container: 'border-amber-500/45 bg-[#1e293b]/95',
+    iconColor: 'text-amber-400 animate-spin',
+    titleColor: 'text-amber-200',
+    Icon: RefreshCw,
   },
   ignore: {
     container: 'border-slate-500/50 bg-[#1e293b]/95',
@@ -53,7 +65,7 @@ export function ToastContainer({toasts, onDismiss}: ToastContainerProps) {
   return (
     <div
       style={{top: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)'}}
-      className="pointer-events-none fixed inset-x-0 z-50 flex flex-col items-center gap-2 px-4 sm:inset-x-auto sm:right-6 sm:w-full sm:max-w-sm sm:items-end sm:px-0"
+      className="pointer-events-none fixed inset-x-0 z-[60] flex flex-col items-center gap-2 px-4 sm:inset-x-auto sm:right-6 sm:w-full sm:max-w-sm sm:items-end sm:px-0"
       aria-live="polite"
       aria-atomic="false"
     >

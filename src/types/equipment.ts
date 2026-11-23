@@ -14,7 +14,7 @@ export interface FirestoreSyncMetadata {
 
 export type SyncMode = 'local' | 'firestore';
 
-export type ToastVariant = 'running' | 'standby' | 'ignore' | 'info' | 'error';
+export type ToastVariant = 'running' | 'standby' | 'ignore' | 'info' | 'error' | 'success' | 'updating';
 
 export interface ToastItem {
   id: string;

@@ -1,11 +1,10 @@
 import {Ban, Clock, Pause, Play} from 'lucide-react';
 import {memo} from 'react';
 import type {EquipmentRecord, EquipmentStatus} from '../types/equipment';
-import {formatRelativeTime, formatTime24} from '../utils/time';
+import {formatDateTime24} from '../utils/time';
 
 interface EquipmentRowProps {
   equipment: EquipmentRecord;
-  now: number;
   onStatusChange: (tag: string, nextStatus: EquipmentStatus) => void;
 }
 
@@ -45,22 +44,20 @@ const STATUS_OPTIONS: readonly {
 
 export const EquipmentRow = memo(function EquipmentRow({
   equipment,
-  now,
   onStatusChange,
 }: EquipmentRowProps) {
-  const time24 = formatTime24(equipment.updatedAt);
-  const relative = formatRelativeTime(equipment.updatedAt, now);
+  const dateTime24 = formatDateTime24(equipment.updatedAt);
   const activeOption =
     STATUS_OPTIONS.find((option) => option.value === equipment.status) ?? STATUS_OPTIONS[0];
 
   return (
     <li className="flex flex-col gap-2.5 rounded-xl border border-[#334155] bg-[#1e293b] px-3.5 py-3 transition-colors duration-150 hover:border-slate-500/80 md:flex-row md:items-center md:justify-between md:gap-4 md:px-4">
-      {/* Top Row (Mobile) / Left Column (Desktop): Enlarged Tag & Inline Right Timestamp */}
+      {/* Top Row (Mobile) / Left Column (Desktop): Enlarged Tag & Static Date/Time Stamp */}
       <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
         <div className="truncate font-mono text-lg font-bold tracking-tight text-slate-100 tabular-nums">
           {equipment.tag}
         </div>
-        <div className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400 tabular-nums">
+        <div className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400 tabular-nums whitespace-nowrap">
           {equipment.hasPendingWrites ? (
             <Clock
               className="h-3.5 w-3.5 shrink-0 animate-pulse text-amber-400"
@@ -69,9 +66,7 @@ export const EquipmentRow = memo(function EquipmentRow({
           ) : (
             <Clock className="h-3.5 w-3.5 shrink-0 text-slate-500" aria-hidden="true" />
           )}
-          <span>{time24}</span>
-          <span aria-hidden="true">·</span>
-          <span>{relative}</span>
+          <span>{dateTime24}</span>
         </div>
       </div>
 

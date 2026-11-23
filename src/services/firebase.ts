@@ -21,12 +21,12 @@ import type {
 } from '../types/equipment';
 
 export const firebaseConfig = {
-  apiKey: 'AIzaSyBZ-2hv8OpbcKzBvcbtrtDI5mNEf0bbI2A',
-  authDomain: 'urea1b-running-status.firebaseapp.com',
-  projectId: 'urea1b-running-status',
-  storageBucket: 'urea1b-running-status.firebasestorage.app',
-  messagingSenderId: '4700480135',
-  appId: '1:4700480135:web:8dd130efee769779c78e22',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? '',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? '',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? '',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ?? '',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? '',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID ?? '',
 };
 
 const EQUIPMENTS_COLLECTION = 'equipments';
